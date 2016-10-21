@@ -24,8 +24,8 @@ class CustomFit
   void set_fitFunc( TString m_fitFunc ){ 
     this->fitFunc = m_fitFunc; 
   }
-  void set_bins( std::vector<double> m_bins ){ 
-    this->bins = m_bins; 
+  void set_bin_centers( std::vector<double> m_bin_centers ){
+    this->bin_centers = m_bin_centers; 
   }
   void set_fitFromBin( int m_fitFromBin ){ 
     this->fitFromBin = m_fitFromBin;
@@ -34,9 +34,9 @@ class CustomFit
     this->fitToBin = m_fitToBin;
   }
 
-  void getFitHisto();
+  void fitHisto();
   void createTestHisto();
-  TH1D* returnFitHisto(){ return this->h_out; }
+  TGraphAsymmErrors* returnFitGraph(){ return this->g_fit; }
   TH1D* returnInputHisto(){ return this->h_in; }
   int setInputHisto(TString fname , TString hname ){ 
     TFile *f=new TFile( fname );
@@ -51,15 +51,17 @@ class CustomFit
   }
 
   private:
+  TGraphAsymmErrors* makeFitGraph(TH1D* h_in);
   double std_dev( std::vector<double> v );
 
   TH1D *h_in;
   TH1D *h_out;
 
   TString fitFunc;
-  std::vector<double> bins;
+  std::vector<double> bin_centers;
   int fitFromBin;
   int fitToBin;
+  TGraphAsymmErrors* g_fit;
 
   public:
   //    virtual ~CustomFit();

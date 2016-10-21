@@ -23,17 +23,21 @@ void test(){
   double a_bins[nbins] = {20.,22.5,25.,27.5,30.,35.,40.,50.,60.};
 
   std::vector<double> bins;
-  for (int i=0; i<nbins; i++) bins.push_back(a_bins[i] );
-  cf.set_bins( bins );
+  //  for (int i=0; i<nbins; i++) bins.push_back(a_bins[i] );
+  for (int i=0; i<(nbins-1); i++) bins.push_back( (a_bins[i+1]+a_bins[i])/2 ); //for now
+  bins.push_back( a_bins[nbins-1]+  (a_bins[nbins-1]-a_bins[nbins-2])/2 );
+  for (int i=0; i<bins.size(); i++) std::cout << bins.at(i) << " " << flush; std::cout << std::endl;
+  cf.set_bin_centers( bins );
 
-  cf.getFitHisto();
+  cf.fitHisto();
 
-  TH1D *h2=cf.returnFitHisto();
+  TGraph *g_fit=cf.returnFitGraph();
 
   TCanvas *c2=new TCanvas();
-  h->Draw("E");     //to set the axis
+  //  h->Draw("E");     //to set the axis
   //  h->GetYaxis()->SetRangeUser(0.4,2.0);
-  h2->Draw("same LP");
-  h->Draw("E same");
+  //  g_fit->SetMarkerStyle(21);
+  g_fit->Draw("AP");
+  //  h->Draw("E same");
 
 }
