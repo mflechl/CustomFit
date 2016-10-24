@@ -6,13 +6,15 @@ void test(){
   CustomFit cf;
 
   int ret=cf.setInputHisto( "FF_corr_Wjets_MCsum_noGen.root" , "c_t" );
-  TH1D *h=cf.returnInputHisto();
   if ( ret != 0 ) return;
 
-  cf.set_fitFunc( "p2" );
-  
+  TH1D *h=cf.returnInputHisto();
+
+  cf.set_fitFunc( "pol2" );
   cf.set_fitFromBin( 1 );
   cf.set_fitToBin( 9 );
+  cf.set_fitMin( 20 );
+  cf.set_fitMax( 120 );
 
   //qcd
   //  const int nbins=8;
@@ -31,13 +33,19 @@ void test(){
 
   cf.fitHisto();
 
-  TGraph *g_fit=cf.returnFitGraph();
+  TGraph *g_fit_input=cf.returnFitInputGraph(); //the input to the fit: data points in the range given
+  TF1 *f_fit=cf.returnFitForm();                //the fit result (function)
+  TH1D *h_fit=cf.returnFitHisto();              //the fit result binned (histo)
 
   TCanvas *c2=new TCanvas();
   //  h->Draw("E");     //to set the axis
   //  h->GetYaxis()->SetRangeUser(0.4,2.0);
   //  g_fit->SetMarkerStyle(21);
-  g_fit->Draw("AP");
-  //  h->Draw("E same");
+  f_fit->Draw();
+  h_fit->SetLineWidth(3);
+  h_fit->SetLineColor(602);
+  h_fit->Draw("E same");
+  g_fit_input->SetLineWidth(2);
+  g_fit_input->Draw("P same");
 
 }

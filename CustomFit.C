@@ -13,18 +13,21 @@ void CustomFit::fitHisto(){
 
   if ( ! this->h_in ) std::cerr << "ERROR: CustomFit::fitHisto: input histo does not exist." << std::endl;
 
-  this->g_fit=this->makeFitGraph( h_in );
+  this->g_fit_input=this->makeFitGraph( h_in );
 
-  this->h_out = (TH1D*)this->h_in->Clone(this->h_in->GetName()+(TString)"_smoothed");
-  this->h_out->SetDirectory(0);
+  this->f_fit = new TF1("f1",this->fitFunc,fitMin,fitMax);
+  //  g_fit_input->Fit(fitFunc,"","",fitMin,fitMax);
+  g_fit_input->Fit(f_fit,"N");
 
-  Int_t nbins = this->h_out->GetNbinsX();
-
-  for (int ib=1; ib<=nbins; ib++){
-    //    double x = this->h_out->GetBinCenter(ib);
-    double smooth_val = this->h_out->GetBinContent(ib);
-    this->h_out->SetBinContent(ib,smooth_val);
+  const int nbins = 100;
+  //  this->h_fit = new TH1D("h_fit","",nbins,this->bin_centers.front(),this->bin_centers.back());
+  this->h_fit = new TH1D("h_fit","",nbins,this->fitMin,this->fitMax);
+  for (int i=1; i<=nbins; i++){
+    this->h_fit->SetBinContent( i , f_fit->Eval( h_fit->GetBinCenter(i) ) );
+    this->h_fit->SetBinError( i , 10e-8 );
   }
+  //  this->h_fit->SetDirectory(0);
+
 }
 
 TGraphAsymmErrors* CustomFit::makeFitGraph(TH1D* h_in){
