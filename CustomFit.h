@@ -39,9 +39,11 @@ class CustomFit
   void set_fitMax( float m_fitMax ){ 
     this->fitMax = m_fitMax;
   }
+  void set_histo_bins( int m_histo_bins ){ 
+    this->histo_bins = m_histo_bins;
+  }
 
   void fitHisto();
-  void createTestHisto();
   TGraphAsymmErrors* returnFitInputGraph(){ return this->g_fit_input; }
   TH1D* returnInputHisto(){ return this->h_in; }
   TH1D* returnFitHisto(){ return this->h_fit; }
@@ -57,10 +59,12 @@ class CustomFit
     if ( this->h_in ) return 0;
     else{ cerr << "ERROR: Could not assign histogram with address " << m_h << endl; return 1; }
   }
+  TGraphAsymmErrors* fluctuateGraph();
 
   private:
   TGraphAsymmErrors* makeFitGraph(TH1D* h_in);
-  double std_dev( std::vector<double> v );
+  double std_dev( const std::vector<double> v );
+  double std_dev( TF1* f[] , const unsigned fsize , double val );
 
   TH1D *h_in;
   TH1D *h_fit;
@@ -73,6 +77,9 @@ class CustomFit
   int fitToBin;
   float fitMin;
   float fitMax;
+  int histo_bins;
+
+  TRandom3 rand;
 
   public:
   //    virtual ~CustomFit();
