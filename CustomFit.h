@@ -19,8 +19,10 @@ using namespace std;
 class CustomFit
 {
 
-  public:
+ public:
   CustomFit();
+  //  ~CustomFit();
+
   void set_fitFunc( TString m_fitFunc ){ 
     this->fitFunc = m_fitFunc; 
   }
@@ -81,11 +83,8 @@ class CustomFit
 
   TRandom3 rand;
 
-  public:
-  //    virtual ~CustomFit();
-
-  public:
-    ClassDef(CustomFit,0)
+  // public:
+  //  ClassDef(CustomFit,0)
 
 };
 

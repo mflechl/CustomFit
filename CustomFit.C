@@ -1,6 +1,6 @@
 #include "CustomFit.h"
 
-ClassImp(CustomFit)
+//ClassImp(CustomFit)
 
 static const int NTOYS = 100;
 

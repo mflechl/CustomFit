@@ -1,8 +1,16 @@
+#include "CustomFit.h"
+#include "TStyle.h"
+#include "TROOT.h"
+#include "TCanvas.h"
+#include "TGraph.h"
+#include "TF1.h"
+#include "TH1D.h"
+#include <stdlib.h>
 
 void test(int cat=0){
   gStyle->SetOptStat(0);
 
-  gROOT->ProcessLine(".L CustomFit.C+");
+  //  gROOT->ProcessLine(".L CustomFit.C+");
   CustomFit cf;
 
   int ret=cf.setInputHisto( "FF_corr_Wjets_MCsum_noGen.root" , "c_t" );
@@ -10,12 +18,12 @@ void test(int cat=0){
   TH1D *h=cf.returnInputHisto();
 
   //qcd
-  //  const int nbins=8;
-  //  double a_bins[nbins]   = {20.,22.5,25.,27.5,30.,35.,40.,50.};
+  const int nbins=8;
+  double a_bins[nbins]   = {20.,22.5,25.,27.5,30.,35.,40.,50.};
 
   //w+jets
-  const int nbins=9;
-  double a_bins[nbins] = {20.,22.5,25.,27.5,30.,35.,40.,50.,60.};
+  //const int nbins=9;
+  //double a_bins[nbins] = {20.,22.5,25.,27.5,30.,35.,40.,50.,60.};
 
 
   cf.set_fitFunc( "landau(0)+pol0(2)" );
@@ -55,4 +63,13 @@ void test(int cat=0){
   g_fit_input->SetLineWidth(2);
   g_fit_input->Draw("P same");
 
+  c2->SaveAs("fit.png");
+
 }
+
+#ifndef __CINT__
+int main(int argc, char* argv[]) {
+  int channel = argc > 1 ? atoi(argv[1]) : 0;
+  test(channel);    
+}
+#endif
