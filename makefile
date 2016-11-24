@@ -8,7 +8,7 @@ all: CustomFit.o test
 CustomFit.o: CustomFit.C
 	$(CXX) -I$(INCDIR) -I$(ROOTINC) $(ROOTLIB) -c CustomFit.C
 
-test: test.C
+test: CustomFit.o test.C
 	$(CXX) -I$(INCDIR) -I$(ROOTINC) $(ROOTLIB) -o $@ CustomFit.o test.C
 
 clean:
