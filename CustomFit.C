@@ -10,6 +10,7 @@ CustomFit::CustomFit(){
   this->fitFromBin=0;
   this->fitToBin=3;
   this->histo_bins=100;
+  this->err_scale=2;
 }
 
 void CustomFit::fitHisto(){
@@ -33,8 +34,11 @@ void CustomFit::fitHisto(){
   //  this->h_fit = new TH1D("h_fit","",this->histo_bins,this->bin_centers.front(),this->bin_centers.back());
   this->h_fit = new TH1D("h_fit","",this->histo_bins,this->fitMin,this->fitMax);
   for (int i=1; i<=this->histo_bins; i++){
-    this->h_fit->SetBinContent( i , f_fit->Eval( h_fit->GetBinCenter(i) ) );
-    double err = 2*this->std_dev( f_toys , NTOYS , h_fit->GetBinCenter(i) );
+    double val=f_fit->Eval( h_fit->GetBinCenter(i) );
+    this->h_fit->SetBinContent( i , val );
+    //    double err = 2*this->std_dev( f_toys , NTOYS , h_fit->GetBinCenter(i) );
+    double err = this->err_scale*this->std_dev( f_toys , NTOYS , h_fit->GetBinCenter(i) );
+    if ( err>val ) err=val;
     this->h_fit->SetBinError( i , err );
   }
   //  this->h_fit->SetDirectory(0);
@@ -100,9 +104,15 @@ double CustomFit::std_dev( const std::vector<double> v ){
   return std_dev;
 }
 
+//double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val , const double binc ){
 double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val ){
   std::vector<double> v;
-  for (unsigned i=0; i<fsize; i++) v.push_back( f[i]->Eval(val)  );
+  for (unsigned i=0; i<fsize; i++){
+    double y=f[i]->Eval(val);
+    if (y<0) y=0;
+    //    if (y>2*binc) y=2*binc;
+    v.push_back( y  );
+  }
 
   return this->std_dev( v );
 }

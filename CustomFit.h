@@ -41,6 +41,9 @@ class CustomFit
   void set_fitMax( float m_fitMax ){ 
     this->fitMax = m_fitMax;
   }
+  void set_err_scale( float m_err_scale ){ 
+    this->err_scale = m_err_scale;
+  }
   void set_histo_bins( int m_histo_bins ){ 
     this->histo_bins = m_histo_bins;
   }
@@ -66,7 +69,8 @@ class CustomFit
   private:
   TGraphAsymmErrors* makeFitGraph(TH1D* h_in);
   double std_dev( const std::vector<double> v );
-  double std_dev( TF1* f[] , const unsigned fsize , double val );
+  double std_dev( TF1* f[] , const unsigned fsize , const double val );
+  //  double std_dev( TF1* f[] , const unsigned fsize , const double val , const double binc );
 
   TH1D *h_in;
   TH1D *h_fit;
@@ -79,6 +83,7 @@ class CustomFit
   int fitToBin;
   float fitMin;
   float fitMax;
+  float err_scale;
   int histo_bins;
 
   TRandom3 rand;

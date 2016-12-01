@@ -5,6 +5,7 @@
 #include "TGraph.h"
 #include "TF1.h"
 #include "TH1D.h"
+#include "TString.h"
 #include <stdlib.h>
 
 void test(int cat=0){
@@ -13,21 +14,37 @@ void test(int cat=0){
   //  gROOT->ProcessLine(".L CustomFit.C+");
   CustomFit cf;
 
-  int ret=cf.setInputHisto( "FF_corr_Wjets_MCsum_noGen.root" , "c_t" );
-  if ( ret != 0 ) return;
+  //  TString fname="FF_corr_Wjets_MCsum_noGen.root";
+  TString fname="FF_corr_QCD_MCsum_noGen.root";
+  TString hname="c_t";
+  //  int ret=cf.setInputHisto( "FF_corr_Wjets_MCsum_noGen.root" , "c_t" );
+  int ret=cf.setInputHisto( fname , hname );
+  if ( ret != 0 ){
+    std::cout << "Cannot open input file " << fname << " with histogram " << hname << std::endl;
+    return;
+  }
   TH1D *h=cf.returnInputHisto();
+
+  std::cout << "1" << std::endl;
 
   //qcd
   const int nbins=8;
   double a_bins[nbins]   = {20.,22.5,25.,27.5,30.,35.,40.,50.};
 
   //w+jets
-  //const int nbins=9;
-  //double a_bins[nbins] = {20.,22.5,25.,27.5,30.,35.,40.,50.,60.};
+  //  const int nbins=9;
+  //  double a_bins[nbins] = {20.,22.5,25.,27.5,30.,35.,40.,50.,60.};
+
+  if ( cat==0 || cat==2 ){
+    cf.set_fitFunc( "landau(0)+pol1(2)" );
+    cf.set_err_scale( 1.0 );
+  } else{
+    cf.set_fitFunc( "landau(0)+pol0(2)" );
+    cf.set_err_scale( 2.0 );
+  }
 
 
-  cf.set_fitFunc( "landau(0)+pol0(2)" );
-  //  cf.set_fitFunc( "expo(0)+pol0(2)" );
+  //  cf.set_fitFunc( "expo(0)+pol1(2)" );
   //  cf.set_fitFunc( "pol1(0)*expo(2)+pol0(4)" );
   cf.set_fitFromBin( 1+cat*nbins );
   cf.set_fitToBin( cat*(nbins+1) );
@@ -57,6 +74,7 @@ void test(int cat=0){
   f_fit->GetXaxis()->SetTitle("p_{T} [GeV]");
   f_fit->GetYaxis()->SetTitle("Fake factor");
   f_fit->SetMinimum(0);
+  f_fit->SetMaximum(f_fit->GetMaximum()*1.6);
   //  h_fit->SetLineWidth(3);
   h_fit->SetLineColor(602);
   h_fit->Draw("E same");
