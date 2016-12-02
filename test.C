@@ -14,10 +14,10 @@ void test(int cat=0){
   //  gROOT->ProcessLine(".L CustomFit.C+");
   CustomFit cf;
 
-  //  TString fname="FF_corr_Wjets_MCsum_noGen.root";
-  TString fname="FF_corr_QCD_MCsum_noGen.root";
+  TString fname="FF_corr_Wjets_MCsum_noGen.root";
+  //TString fname="FF_corr_QCD_MCsum_noGen.root";
   TString hname="c_t";
-  //  int ret=cf.setInputHisto( "FF_corr_Wjets_MCsum_noGen.root" , "c_t" );
+
   int ret=cf.setInputHisto( fname , hname );
   if ( ret != 0 ){
     std::cout << "Cannot open input file " << fname << " with histogram " << hname << std::endl;
@@ -25,22 +25,22 @@ void test(int cat=0){
   }
   TH1D *h=cf.returnInputHisto();
 
-  std::cout << "1" << std::endl;
-
   //qcd
-  const int nbins=8;
-  double a_bins[nbins]   = {20.,22.5,25.,27.5,30.,35.,40.,50.};
+  //  const int nbins=8;
+  //  double a_bins[nbins]   = {20.,22.5,25.,27.5,30.,35.,40.,50.};
 
   //w+jets
-  //  const int nbins=9;
-  //  double a_bins[nbins] = {20.,22.5,25.,27.5,30.,35.,40.,50.,60.};
+  const int nbins=9;
+  double a_bins[nbins] = {20.,22.5,25.,27.5,30.,35.,40.,50.,60.};
 
   if ( cat==0 || cat==2 ){
     cf.set_fitFunc( "landau(0)+pol1(2)" );
     cf.set_err_scale( 1.0 );
   } else{
     cf.set_fitFunc( "landau(0)+pol0(2)" );
-    cf.set_err_scale( 2.0 );
+    cf.set_errFunc( "landau(0)+pol1(2)" ); // not default
+    cf.set_err_scale( 1.0 ); //not default
+    // cf.set_err_scale( 2.0 ); //default
   }
 
 
@@ -65,6 +65,12 @@ void test(int cat=0){
   TF1 *f_fit=cf.returnFitForm();                //the fit result (function)
   TH1D *h_fit=cf.returnFitHisto();              //the fit result binned (histo)
 
+  TString proc="";
+  if ( fname.Contains("QCD") ) proc="qcd_";
+  if ( fname.Contains("Wj") ) proc="wjets_";
+  TString pfile=proc+"cat_"; pfile+=cat; pfile+="_";
+
+  //plot fit
   TCanvas *c2=new TCanvas();
   //  h->Draw("E");     //to set the axis
   //  h->GetYaxis()->SetRangeUser(0.4,2.0);
@@ -81,7 +87,25 @@ void test(int cat=0){
   g_fit_input->SetLineWidth(2);
   g_fit_input->Draw("P same");
 
-  c2->SaveAs("fit.png");
+  c2->SaveAs(pfile+"fit.png");
+
+  //plot error fits
+  const int NTOYS=100;
+  TF1 *f[NTOYS]; //NTOYS, set in CustomFit.C !!!
+  for (int i=0; i<NTOYS; i++) f[i]=cf.returnErrFits(i);
+
+  TCanvas *c_err=new TCanvas();
+  f_fit->SetLineWidth(3);
+  f_fit->SetLineColor(kBlack);
+  f_fit->Draw();
+
+  for (unsigned i=0; i<NTOYS; i++){
+    f[i]->Draw("same");
+  }
+  f_fit->Draw("same"); //draw again on top
+  g_fit_input->Draw("P same");
+
+  c_err->SaveAs(pfile+"err.png");
 
 }
 

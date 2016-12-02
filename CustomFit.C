@@ -2,10 +2,11 @@
 
 //ClassImp(CustomFit)
 
-static const int NTOYS = 100;
+//static const int NTOYS = 100;
 
 CustomFit::CustomFit(){
-  this->fitFunc="p2";
+  this->fitFunc="";
+  this->errFunc="";
   //  this->bins.push_back(0);
   this->fitFromBin=0;
   this->fitToBin=3;
@@ -20,29 +21,37 @@ void CustomFit::fitHisto(){
   this->g_fit_input=this->makeFitGraph( h_in );
 
   this->f_fit = new TF1("f1",this->fitFunc,fitMin,fitMax);
-  //  g_fit_input->Fit(fitFunc,"","",fitMin,fitMax);
   g_fit_input->Fit(f_fit,"N");
 
-  TF1 *f_toys[NTOYS];
   for (int i=0; i<NTOYS; i++){
-    TGraphAsymmErrors *g_toys=this->fluctuateGraph();
-    f_toys[i]=new TF1("f_toys",this->fitFunc,fitMin,fitMax);
-    g_toys->Fit(f_toys[i],"NQ");
+    int status;
+    this->f_fit_err[i]=this->getFitErr(status);
   }
-  //  std::cout << f_toys[3]->Eval(27.2) << " " << f_toys[37]->Eval(27.2) << std::endl;
-
-  //  this->h_fit = new TH1D("h_fit","",this->histo_bins,this->bin_centers.front(),this->bin_centers.back());
   this->h_fit = new TH1D("h_fit","",this->histo_bins,this->fitMin,this->fitMax);
   for (int i=1; i<=this->histo_bins; i++){
     double val=f_fit->Eval( h_fit->GetBinCenter(i) );
     this->h_fit->SetBinContent( i , val );
-    //    double err = 2*this->std_dev( f_toys , NTOYS , h_fit->GetBinCenter(i) );
-    double err = this->err_scale*this->std_dev( f_toys , NTOYS , h_fit->GetBinCenter(i) );
+    //    double err = 2*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) );
+    //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) ); //standard method
+    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) , 1 ); //CL - 16% / 84% value
     if ( err>val ) err=val;
     this->h_fit->SetBinError( i , err );
   }
-  //  this->h_fit->SetDirectory(0);
 
+}
+
+TF1* CustomFit::getFitErr(int &status){
+  int fit_status=1;
+  TF1* f;
+
+  while (fit_status>0){
+    TGraphAsymmErrors *g_toys=this->fluctuateGraph();
+    f=new TF1("this->f_fit_err",this->errFunc,fitMin,fitMax);
+    fit_status=g_toys->Fit(f,"NQ");
+    //  if (fit_status>0) f=this->getFitErr(); //recursive
+  }
+  status=fit_status;
+  return f;
 }
 
 TGraphAsymmErrors* CustomFit::fluctuateGraph(){
@@ -87,6 +96,7 @@ TGraphAsymmErrors* CustomFit::makeFitGraph(TH1D* h_in){
   return g;
 }
 
+//standard deviation
 double CustomFit::std_dev( const std::vector<double> v ){
   unsigned size=v.size();
 
@@ -104,16 +114,33 @@ double CustomFit::std_dev( const std::vector<double> v ){
   return std_dev;
 }
 
+//instead of calculating std dev, return the 16% / 84% quantile
+void CustomFit::std_dev( std::vector<double> v, double& err_lo, double& err_hi ){
+  std::sort(v.begin(),v.end());
+  int i_lo=(int)(0.16*v.size());
+  int i_hi=(int)(0.84*v.size());
+  float val_lo=v.at(i_lo);
+  float val_hi=v.at(i_hi);
+  //  err_lo=fabs(val_lo-val_hi)/(val_lo+val_hi); //rel symm error
+  err_lo=fabs(val_lo-val_hi)/2;
+  err_hi=err_lo;
+
+  //  std::cout << "DEBUG : std_dev CL " << i_lo << " " << i_hi << " " << val_lo << " " << val_hi << " " << err_lo << " " << err_hi << std::endl;
+}
+
 //double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val , const double binc ){
-double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val ){
+double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val , const int cl){
   std::vector<double> v;
   for (unsigned i=0; i<fsize; i++){
     double y=f[i]->Eval(val);
-    if (y<0) y=0;
+    if ( !cl && y<0 ) y=0;
     //    if (y>2*binc) y=2*binc;
     v.push_back( y  );
   }
 
-  return this->std_dev( v );
+  double ret;
+  if ( cl ) this->std_dev( v , ret , ret );
+  else ret=this->std_dev( v );
+  return ret;
 }
 
