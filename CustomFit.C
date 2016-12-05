@@ -8,10 +8,11 @@ CustomFit::CustomFit(){
   this->fitFunc="";
   this->errFunc="";
   //  this->bins.push_back(0);
-  this->fitFromBin=0;
-  this->fitToBin=3;
+  this->fitFromBin=-1;
+  //  this->fitToBin=-1;
   this->histo_bins=100;
   this->err_scale=2;
+  this->histMaxFrac=1;
 }
 
 void CustomFit::fitHisto(){
@@ -27,16 +28,27 @@ void CustomFit::fitHisto(){
     int status;
     this->f_fit_err[i]=this->getFitErr(status);
   }
-  this->h_fit = new TH1D("h_fit","",this->histo_bins,this->fitMin,this->fitMax);
-  for (int i=1; i<=this->histo_bins; i++){
+  //  this->h_fit = new TH1D("h_fit","",this->histo_bins,this->fitMin,this->fitMax);
+  int nbins=this->histo_bins*this->histMaxFrac;  
+  this->h_fit = new TH1D("h_fit","",nbins,this->fitMin,this->fitMax*this->histMaxFrac);
+
+  double *x=new double[nbins]; double *y=new double[nbins];
+  double *ey_lo=new double[nbins]; double *ey_hi=new double[nbins];
+
+  //  for (int i=1; i<=this->histo_bins; i++){
+  for (int i=1; i<=nbins; i++){
     double val=f_fit->Eval( h_fit->GetBinCenter(i) );
     this->h_fit->SetBinContent( i , val );
-    //    double err = 2*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) );
     //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) ); //standard method
-    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) , 1 ); //CL - 16% / 84% value
+    //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) , err_lo, err_hi, 1 ); //CL - 16% / 84% value
+    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) , ey_lo[i-1], ey_hi[i-1], 1 ); //CL - 16% / 84% value
+    x[i-1]=h_fit->GetBinCenter(i);
+    y[i-1]=val;
     if ( err>val ) err=val;
     this->h_fit->SetBinError( i , err );
   }
+
+  this->g_fit = new TGraphAsymmErrors( nbins , x , y , 0 , 0 , ey_lo , ey_hi );
 
 }
 
@@ -74,6 +86,11 @@ TGraphAsymmErrors* CustomFit::fluctuateGraph(){
 
 
 TGraphAsymmErrors* CustomFit::makeFitGraph(TH1D* h_in){
+
+  if (this->fitFromBin < 0){
+    std::cout << "ERROR: fitFromBin has not been set!" << std::endl;
+    return 0;
+  }
 
   TGraphAsymmErrors* g;
   int nbins=bin_centers.size();  
@@ -115,32 +132,38 @@ double CustomFit::std_dev( const std::vector<double> v ){
 }
 
 //instead of calculating std dev, return the 16% / 84% quantile
-void CustomFit::std_dev( std::vector<double> v, double& err_lo, double& err_hi ){
+double CustomFit::std_dev( std::vector<double> v, double& err_lo, double& err_hi , double central_value){
   std::sort(v.begin(),v.end());
   int i_lo=(int)(0.16*v.size());
   int i_hi=(int)(0.84*v.size());
   float val_lo=v.at(i_lo);
   float val_hi=v.at(i_hi);
-  //  err_lo=fabs(val_lo-val_hi)/(val_lo+val_hi); //rel symm error
-  err_lo=fabs(val_lo-val_hi)/2;
-  err_hi=err_lo;
 
+  err_lo=central_value-val_lo;
+  err_hi=val_hi-central_value;
+
+ if (err_lo<err_hi/10.) err_lo=err_hi/10.;
+ if (err_hi<err_lo/10.) err_hi=err_lo/10.;
+
+  return fabs(val_lo-val_hi)/2; //symm. error
   //  std::cout << "DEBUG : std_dev CL " << i_lo << " " << i_hi << " " << val_lo << " " << val_hi << " " << err_lo << " " << err_hi << std::endl;
 }
 
 //double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val , const double binc ){
-double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val , const int cl){
+double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val , double& err_lo, double& err_hi, const int cl){
   std::vector<double> v;
   for (unsigned i=0; i<fsize; i++){
     double y=f[i]->Eval(val);
-    if ( !cl && y<0 ) y=0;
+    //    if ( !cl && y<0 ) y=0;
+    if ( y<0 ) y=0;
     //    if (y>2*binc) y=2*binc;
     v.push_back( y  );
   }
 
   double ret;
-  if ( cl ) this->std_dev( v , ret , ret );
+  if ( cl ) ret=this->std_dev( v , err_lo , err_hi , this->f_fit->Eval(val) );
   else ret=this->std_dev( v );
+
   return ret;
 }
 

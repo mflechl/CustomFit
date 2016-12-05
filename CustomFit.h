@@ -17,7 +17,7 @@
 
 using namespace std;
 
-static const int NTOYS = 100;
+static const int NTOYS = 200;
 
 class CustomFit
 {
@@ -36,17 +36,30 @@ class CustomFit
   void set_bin_centers( std::vector<double> m_bin_centers ){
     this->bin_centers = m_bin_centers; 
   }
+  void set_bin_centers(TString fname , TString hname , int nbins){
+    TFile *f=new TFile( fname );
+    TH1D *b=(TH1D*) f->Get( hname );
+    if ( ! b ){ std::cerr << "ERROR: " << hname << " not found in file " << fname << std::endl; return;}
+    std::vector<double> m_bin_centers;
+    for (int i=0; i<nbins; i++){
+      m_bin_centers.push_back( b->GetBinContent(i+this->fitFromBin) );
+    }
+    this->bin_centers = m_bin_centers;
+  }
   void set_fitFromBin( int m_fitFromBin ){ 
     this->fitFromBin = m_fitFromBin;
   }
-  void set_fitToBin( int m_fitToBin ){ 
-    this->fitToBin = m_fitToBin;
-  }
+  //  void set_fitToBin( int m_fitToBin ){ 
+  //    this->fitToBin = m_fitToBin;
+  //  }
   void set_fitMin( float m_fitMin ){ 
     this->fitMin = m_fitMin;
   }
   void set_fitMax( float m_fitMax ){ 
     this->fitMax = m_fitMax;
+  }
+  void set_histMaxFrac( float m_histMaxFrac ){ 
+    this->histMaxFrac = m_histMaxFrac;
   }
   void set_err_scale( float m_err_scale ){ 
     this->err_scale = m_err_scale;
@@ -64,6 +77,7 @@ class CustomFit
   TGraphAsymmErrors* returnFitInputGraph(){ return this->g_fit_input; }
   TH1D* returnInputHisto(){ return this->h_in; }
   TH1D* returnFitHisto(){ return this->h_fit; }
+  TGraphAsymmErrors* returnFitGraph(){ return this->g_fit; }
   TF1* returnFitForm(){ return this->f_fit; }
   TF1* returnErrFits(int i){ return this->f_fit_err[i]; }
   //  TF1** returnErrFits(){ return this->f_fit_err; }
@@ -88,23 +102,26 @@ class CustomFit
   private:
   TGraphAsymmErrors* makeFitGraph(TH1D* h_in);
   double std_dev( const std::vector<double> v );
-  void std_dev( std::vector<double> v, double& err_lo, double& err_hi );
-  double std_dev( TF1* f[] , const unsigned fsize , const double val , const int cl=0);
+  double std_dev( std::vector<double> v, double& err_lo, double& err_hi , double central_value=0);
+  double std_dev( TF1* f[] , const unsigned fsize , const double val , double& err_lo, double& err_hi, const int cl=0);
   TF1* getFitErr(int &status);
   //  double std_dev( TF1* f[] , const unsigned fsize , const double val , const double binc );
   //  void saveErrFits( TF1* f[] , const unsigned fsize );
 
-  TH1D *h_in;
-  TH1D *h_fit;
+  TH1D *h_in; //input histo
+  TH1D *h_fit; //fit result, binned to a histo (output)
+  TGraphAsymmErrors* g_fit; //fit result, as a TGraph with asym errors
+
   TF1 *f_fit;
   TF1 *f_fit_err[NTOYS];
-  TGraphAsymmErrors* g_fit_input;
+  TGraphAsymmErrors* g_fit_input; //input histo, converted to a TGraph
 
   TString fitFunc;
   TString errFunc;
   std::vector<double> bin_centers;
   int fitFromBin;
-  int fitToBin;
+  //  int fitToBin;
+  float histMaxFrac;
   float fitMin;
   float fitMax;
   float err_scale;
