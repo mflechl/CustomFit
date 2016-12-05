@@ -115,6 +115,7 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
 
   c2->SaveAs(pfile+"fit.png");
 
+  /*
   //plot error fits
   const int NTOYS=200;
   TF1 *f[NTOYS]; //NTOYS, set in CustomFit.C !!!
@@ -132,6 +133,7 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
   g_fit_input->Draw("P same");
 
   c_err->SaveAs(pfile+"err.png");
+  */
 
 }
 

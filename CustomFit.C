@@ -29,22 +29,35 @@ void CustomFit::fitHisto(){
     this->f_fit_err[i]=this->getFitErr(status);
   }
   //  this->h_fit = new TH1D("h_fit","",this->histo_bins,this->fitMin,this->fitMax);
-  int nbins=this->histo_bins*this->histMaxFrac;  
-  this->h_fit = new TH1D("h_fit","",nbins,this->fitMin,this->fitMax*this->histMaxFrac);
-  this->h_fit_lo = new TH1D("h_fit_lo","",nbins,this->fitMin,this->fitMax*this->histMaxFrac);
-  this->h_fit_hi = new TH1D("h_fit_hi","",nbins,this->fitMin,this->fitMax*this->histMaxFrac);
+  //  int nbins=this->histo_bins*this->histMaxFrac;  
+  int nbins=this->histo_bins;  
+  this->h_fit = new TH1D("h_fit","",nbins,this->fitMin,this->fitMax);
+  this->h_fit_lo = new TH1D("h_fit_lo","",nbins,this->fitMin,this->fitMax);
+  this->h_fit_hi = new TH1D("h_fit_hi","",nbins,this->fitMin,this->fitMax);
 
   double *x=new double[nbins]; double *y=new double[nbins];
   double *ey_lo=new double[nbins]; double *ey_hi=new double[nbins];
 
   //  for (int i=1; i<=this->histo_bins; i++){
   for (int i=1; i<=nbins; i++){
-    double val=f_fit->Eval( h_fit->GetBinCenter(i) );
+    double xv=h_fit->GetBinCenter(i);
+    //to just continue after a certain value:
+    if ( xv > this->fitMax*this->histMaxFrac ){
+      double val=this->h_fit->GetBinContent(i-1);
+      this->h_fit->SetBinContent( i , val );
+      x[i-1]=xv;               y[i-1]=y[i-2];
+      ey_lo[i-1]=ey_lo[i-2];   ey_hi[i-1]=ey_hi[i-2];
+      this->h_fit->SetBinError( i , this->h_fit->GetBinError(i-1) );
+      this->h_fit_lo->SetBinContent( i , val-ey_lo[i-1] );
+      this->h_fit_hi->SetBinContent( i , val+ey_hi[i-1] );
+      continue;
+    }
+    double val=f_fit->Eval( xv );
     this->h_fit->SetBinContent( i , val );
     //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) ); //standard method
     //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) , err_lo, err_hi, 1 ); //CL - 16% / 84% value
-    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) , ey_lo[i-1], ey_hi[i-1], 1 ); //CL - 16% / 84% value
-    x[i-1]=h_fit->GetBinCenter(i);
+    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , xv , ey_lo[i-1], ey_hi[i-1], 1 ); //CL - 16% / 84% value
+    x[i-1]=xv;
     y[i-1]=val;
     if ( err>val ) err=val;
     this->h_fit->SetBinError( i , err );
