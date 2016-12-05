@@ -77,8 +77,13 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
 
   TGraph *g_fit_input=cf.returnFitInputGraph(); //the input to the fit: data points in the range given
   TF1 *f_fit=cf.returnFitForm();                //the fit result (function)
-  TH1D *h_fit=cf.returnFitHisto();              //the fit result binned (histo)
   TGraphAsymmErrors *g_fit=cf.returnFitGraph();              //the fit result binned (histo)
+
+  /*
+  TH1D *h_fit=cf.returnFitHisto();              //the fit result binned (histo)
+  TH1D *h_fit_lo=cf.returnFitHisto(-1);         //the fit result binned (histo), lower uncertainty band
+  TH1D *h_fit_hi=cf.returnFitHisto(+1);         //the fit result binned (histo), higher uncertainty band
+  */
 
   TString pfile=proc+"_cat_"; pfile+=cat; pfile+="_";
 
@@ -100,6 +105,13 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
   g_fit->Draw("Ez same");
   g_fit_input->SetLineWidth(2);
   g_fit_input->Draw("P same");
+
+  /*
+  h_fit_lo->SetLineColor(kRed);
+  h_fit_hi->SetLineColor(kRed);
+  h_fit_lo->Draw("same");
+  h_fit_hi->Draw("same");
+  */
 
   c2->SaveAs(pfile+"fit.png");
 

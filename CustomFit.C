@@ -31,6 +31,8 @@ void CustomFit::fitHisto(){
   //  this->h_fit = new TH1D("h_fit","",this->histo_bins,this->fitMin,this->fitMax);
   int nbins=this->histo_bins*this->histMaxFrac;  
   this->h_fit = new TH1D("h_fit","",nbins,this->fitMin,this->fitMax*this->histMaxFrac);
+  this->h_fit_lo = new TH1D("h_fit_lo","",nbins,this->fitMin,this->fitMax*this->histMaxFrac);
+  this->h_fit_hi = new TH1D("h_fit_hi","",nbins,this->fitMin,this->fitMax*this->histMaxFrac);
 
   double *x=new double[nbins]; double *y=new double[nbins];
   double *ey_lo=new double[nbins]; double *ey_hi=new double[nbins];
@@ -46,6 +48,8 @@ void CustomFit::fitHisto(){
     y[i-1]=val;
     if ( err>val ) err=val;
     this->h_fit->SetBinError( i , err );
+    this->h_fit_lo->SetBinContent( i , val-ey_lo[i-1] );
+    this->h_fit_hi->SetBinContent( i , val+ey_hi[i-1] );
   }
 
   this->g_fit = new TGraphAsymmErrors( nbins , x , y , 0 , 0 , ey_lo , ey_hi );

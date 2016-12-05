@@ -76,7 +76,11 @@ class CustomFit
   void fitHisto();
   TGraphAsymmErrors* returnFitInputGraph(){ return this->g_fit_input; }
   TH1D* returnInputHisto(){ return this->h_in; }
-  TH1D* returnFitHisto(){ return this->h_fit; }
+  TH1D* returnFitHisto(int i=0){ 
+    if (i==0) return this->h_fit; 
+    if (i>0)  return this->h_fit_hi;
+    if (i<0)  return this->h_fit_lo;
+  }
   TGraphAsymmErrors* returnFitGraph(){ return this->g_fit; }
   TF1* returnFitForm(){ return this->f_fit; }
   TF1* returnErrFits(int i){ return this->f_fit_err[i]; }
@@ -110,6 +114,8 @@ class CustomFit
 
   TH1D *h_in; //input histo
   TH1D *h_fit; //fit result, binned to a histo (output)
+  TH1D *h_fit_lo; //fit result, binned to a histo (output), lower uncertainty band
+  TH1D *h_fit_hi; //fit result, binned to a histo (output), higher uncertainty band
   TGraphAsymmErrors* g_fit; //fit result, as a TGraph with asym errors
 
   TF1 *f_fit;
