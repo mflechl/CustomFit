@@ -36,11 +36,14 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
     //    cf.set_errFunc( "landau(0)+pol1(2)" ); // opt 2
     //    cf.set_err_scale( 1.0 ); //opt 2
     cf.set_err_scale( 3.0 ); //opt 1
+    cf.set_err_cl( 0 );
   } else{
     cf.set_fitFunc( "landau(0)+pol1(2)" );
-    cf.set_err_scale( 1.0 );
+    cf.set_err_scale( 1.2 );
     if ( (cat==1 || cat==3) && proc=="wjets" ) cf.set_histMaxFrac( 0.75 );
   }
+  //  cf.set_fitFunc( "landau(0)+pol0(2)" );
+  //  cf.set_err_scale( 2.0 );
 
   int nbins=h->GetNbinsX()/4;
 
@@ -115,7 +118,6 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
 
   c2->SaveAs(pfile+"fit.png");
 
-  /*
   //plot error fits
   const int NTOYS=200;
   TF1 *f[NTOYS]; //NTOYS, set in CustomFit.C !!!
@@ -133,7 +135,6 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
   g_fit_input->Draw("P same");
 
   c_err->SaveAs(pfile+"err.png");
-  */
 
 }
 

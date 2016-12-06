@@ -12,4 +12,4 @@ test: CustomFit.o test.C
 	$(CXX) -I$(INCDIR) -I$(ROOTINC) $(ROOTLIB) -o $@ CustomFit.o test.C
 
 clean:
-	rm *.o test
+	rm -f *.o test

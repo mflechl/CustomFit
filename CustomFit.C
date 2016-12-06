@@ -12,6 +12,7 @@ CustomFit::CustomFit(){
   //  this->fitToBin=-1;
   this->histo_bins=100;
   this->err_scale=2;
+  this->err_cl=1;
   this->histMaxFrac=1;
 }
 
@@ -54,9 +55,11 @@ void CustomFit::fitHisto(){
     }
     double val=f_fit->Eval( xv );
     this->h_fit->SetBinContent( i , val );
-    //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) ); //standard method
-    //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , h_fit->GetBinCenter(i) , err_lo, err_hi, 1 ); //CL - 16% / 84% value
-    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , xv , ey_lo[i-1], ey_hi[i-1], 1 ); //CL - 16% / 84% value
+    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , xv , ey_lo[i-1], ey_hi[i-1], this->err_cl );
+    //    double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , xv , ey_lo[i-1], ey_hi[i-1], 1 ); //CL - 16% / 84% value
+    //double err = this->err_scale*this->std_dev( this->f_fit_err , NTOYS , xv , ey_lo[i-1], ey_hi[i-1]); //std dev
+    ey_lo[i-1]*=this->err_scale;
+    ey_hi[i-1]*=this->err_scale;
     x[i-1]=xv;
     y[i-1]=val;
     if ( err>val ) err=val;
@@ -70,10 +73,11 @@ void CustomFit::fitHisto(){
 }
 
 TF1* CustomFit::getFitErr(int &status){
-  int fit_status=1;
+  int fit_status=11;
   TF1* f;
+  //  ROOT::Math::MinimizerOptions::SetDefaultTolerance(10);
 
-  while (fit_status>0){
+  while (fit_status>10){
     TGraphAsymmErrors *g_toys=this->fluctuateGraph();
     f=new TF1("this->f_fit_err",this->errFunc,fitMin,fitMax);
     fit_status=g_toys->Fit(f,"NQ");
@@ -179,7 +183,7 @@ double CustomFit::std_dev( TF1* f[] , const unsigned fsize ,  const double val ,
 
   double ret;
   if ( cl ) ret=this->std_dev( v , err_lo , err_hi , this->f_fit->Eval(val) );
-  else ret=this->std_dev( v );
+  else{ ret=this->std_dev( v ); err_lo=ret; err_hi=ret; }
 
   return ret;
 }

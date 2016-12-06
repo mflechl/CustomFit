@@ -15,6 +15,8 @@
 #include "TFile.h"
 #include "TCanvas.h"
 
+//#include "Math/Minimizer.h"
+
 using namespace std;
 
 static const int NTOYS = 200;
@@ -63,6 +65,9 @@ class CustomFit
   }
   void set_err_scale( float m_err_scale ){ 
     this->err_scale = m_err_scale;
+  }
+  void set_err_cl( int m_err_cl ){ 
+    this->err_cl = m_err_cl;
   }
   void set_histo_bins( int m_histo_bins ){ 
     this->histo_bins = m_histo_bins;
@@ -131,6 +136,7 @@ class CustomFit
   float fitMin;
   float fitMax;
   float err_scale;
+  int err_cl;
   int histo_bins;
   int save_err_fits;
   TRandom3 rand;
