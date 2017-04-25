@@ -14,6 +14,7 @@
 #include "TF1.h"
 #include "TFile.h"
 #include "TCanvas.h"
+#include "TSpline.h"
 
 //#include "Math/Minimizer.h"
 
@@ -60,8 +61,17 @@ class CustomFit
   void set_fitMax( float m_fitMax ){ 
     this->fitMax = m_fitMax;
   }
-  void set_histMaxFrac( float m_histMaxFrac ){ 
+  void set_histMaxFrac( float m_histMaxFrac ){ //flat fit after this fractions of bins
     this->histMaxFrac = m_histMaxFrac;
+  }
+  float get_histMaxFrac( ){
+    return this->histMaxFrac;
+  }
+  void set_smoothFrac( float m_smoothFrac ){ //smooth transition starting from this fraction of bins to histMaxFrac
+    this->smoothFrac = m_smoothFrac;
+  }
+  void set_smoothMode( TString m_smoothMode ){ //simple, or spline3
+    this->smoothMode = m_smoothMode;
   }
   void set_err_scale( float m_err_scale ){ 
     this->err_scale = m_err_scale;
@@ -82,9 +92,10 @@ class CustomFit
   TGraphAsymmErrors* returnFitInputGraph(){ return this->g_fit_input; }
   TH1D* returnInputHisto(){ return this->h_in; }
   TH1D* returnFitHisto(int i=0){ 
-    if (i==0) return this->h_fit; 
-    if (i>0)  return this->h_fit_hi;
-    if (i<0)  return this->h_fit_lo;
+    if (i==0)      return this->h_fit; 
+    else if (i>0)  return this->h_fit_hi;
+    else           return this->h_fit_lo;
+    //    if (i<0)  return this->h_fit_lo;
   }
   TGraphAsymmErrors* returnFitGraph(){ return this->g_fit; }
   TF1* returnFitForm(){ return this->f_fit; }
@@ -133,6 +144,11 @@ class CustomFit
   int fitFromBin;
   //  int fitToBin;
   float histMaxFrac;
+  float smoothFrac;
+  TString smoothMode;
+  float smoothParam;
+  float smoothExp;
+
   float fitMin;
   float fitMax;
   float err_scale;
