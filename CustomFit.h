@@ -61,6 +61,9 @@ class CustomFit
   void set_fitMax( float m_fitMax ){ 
     this->fitMax = m_fitMax;
   }
+  void set_autoCorr( int m_autoCorr ){ //try to automatically cut off and smoothen functions if they go below 0
+    this->autoCorr = m_autoCorr;       //only effective if histMaxFrac is not set!
+  }
   void set_histMaxFrac( float m_histMaxFrac ){ //flat fit after this fractions of bins
     this->histMaxFrac = m_histMaxFrac;
   }
@@ -148,6 +151,7 @@ class CustomFit
   TString smoothMode;
   float smoothParam;
   float smoothExp;
+  int autoCorr;
 
   float fitMin;
   float fitMax;

@@ -13,11 +13,12 @@ CustomFit::CustomFit(){
   this->histo_bins=100;
   this->err_scale=2;
   this->err_cl=1;
-  this->histMaxFrac=1;
+  this->histMaxFrac=99;
   this->smoothFrac=-1;
   this->smoothMode="spline3"; //spline3 or simple
   this->smoothParam=2;
   this->smoothExp=0.7;
+  this->autoCorr=1;
 }
 
 void CustomFit::fitHisto(){
@@ -42,6 +43,19 @@ void CustomFit::fitHisto(){
 
   double *x=new double[nbins]; double *y=new double[nbins];
   double *ey_lo=new double[nbins]; double *ey_hi=new double[nbins];
+
+  //autoCorr: cut-off and smoothing
+  if ( this->autoCorr && this->histMaxFrac>1 ){
+    for (int i=1; i<=nbins; i++){
+      double xv=h_fit->GetBinCenter(i);
+      if ( f_fit->Eval( xv ) <= 0 ){
+	this->histMaxFrac=xv/this->fitMax*0.8;
+	this->smoothFrac=this->histMaxFrac*0.8;
+	this->smoothMode="spline3";
+	break;
+      }
+    }
+  }
 
   //info used for spline
   const int np=4;

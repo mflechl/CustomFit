@@ -48,9 +48,10 @@ void test(int cat=0, TString fname="tt/FF_corr_QCD_MCsum_noGen.root"){
     cf.set_fitFunc( "landau(0)+pol1(2)" );
     cf.set_err_scale( 1.2 );
     cf.set_smoothMode("spline3"); //alternative: "simple"
-    if ( (cat==2 || cat==3) ) cf.set_histMaxFrac( 0.8 );
-    else                      cf.set_histMaxFrac( 0.5 );
-    cf.set_smoothFrac( cf.get_histMaxFrac()*0.8 );
+    cf.set_autoCorr(1);
+    //    if ( (cat==2 || cat==3) ) cf.set_histMaxFrac( 0.8 );
+    //    else                      cf.set_histMaxFrac( 0.5 );
+    //    cf.set_smoothFrac( cf.get_histMaxFrac()*0.8 );
   }
   //  cf.set_fitFunc( "landau(0)+pol0(2)" );
   //  cf.set_err_scale( 2.0 );
