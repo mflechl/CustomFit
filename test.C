@@ -31,6 +31,22 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
   }
   TH1D *h=cf.returnInputHisto();
 
+  //et, ICHEP
+  //  if ( ( cat==1 && proc=="tt" )     ||     ( (cat==1 || cat==3) && proc=="qcd" ) ){
+  if ( (cat==1 || cat==3) && proc=="qcd" ){
+    cf.set_fitFunc( "landau(0)+pol0(2)" );
+    //    cf.set_errFunc( "landau(0)+pol1(2)" ); // opt 2
+    //    cf.set_err_scale( 1.0 ); //opt 2
+    cf.set_err_scale( 3.0 ); //opt 1
+    cf.set_err_cl( 0 );
+  } else{
+    cf.set_fitFunc( "landau(0)+pol1(2)" );
+    cf.set_err_scale( 1.2 );
+    if ( (cat==1 || cat==3) && proc=="wjets" ) cf.set_histMaxFrac( 0.65 );
+  }
+
+  //mt, ICHEP
+  /*
   if ( cat==1 && ( proc=="qcd" || proc=="tt" ) ){
     cf.set_fitFunc( "landau(0)+pol0(2)" );
     //    cf.set_errFunc( "landau(0)+pol1(2)" ); // opt 2
@@ -42,6 +58,8 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
     cf.set_err_scale( 1.2 );
     if ( (cat==1 || cat==3) && proc=="wjets" ) cf.set_histMaxFrac( 0.75 );
   }
+  */
+
   //  cf.set_fitFunc( "landau(0)+pol0(2)" );
   //  cf.set_err_scale( 2.0 );
 
@@ -82,11 +100,9 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
   TF1 *f_fit=cf.returnFitForm();                //the fit result (function)
   TGraphAsymmErrors *g_fit=cf.returnFitGraph();              //the fit result binned (histo)
 
-  /*
   TH1D *h_fit=cf.returnFitHisto();              //the fit result binned (histo)
   TH1D *h_fit_lo=cf.returnFitHisto(-1);         //the fit result binned (histo), lower uncertainty band
   TH1D *h_fit_hi=cf.returnFitHisto(+1);         //the fit result binned (histo), higher uncertainty band
-  */
 
   TString pfile=proc+"_cat_"; pfile+=cat; pfile+="_";
 
@@ -109,12 +125,12 @@ void test(int cat=0, TString fname="FF_corr_QCD_MCsum_noGen.root"){
   g_fit_input->SetLineWidth(2);
   g_fit_input->Draw("P same");
 
-  /*
-  h_fit_lo->SetLineColor(kRed);
-  h_fit_hi->SetLineColor(kRed);
+  h_fit_lo->SetLineColor(kGreen);
+  h_fit_hi->SetLineColor(kGreen+3);
+  h_fit_lo->SetLineWidth(2);
+  h_fit_hi->SetLineWidth(2);
   h_fit_lo->Draw("same");
   h_fit_hi->Draw("same");
-  */
 
   c2->SaveAs(pfile+"fit.png");
 

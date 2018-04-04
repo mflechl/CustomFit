@@ -66,7 +66,7 @@ class CustomFit
   void set_err_scale( float m_err_scale ){ 
     this->err_scale = m_err_scale;
   }
-  void set_err_cl( int m_err_cl ){ 
+  void set_err_cl( int m_err_cl ){  //0 - std dev, 1 - cl per bin, 2 - cl funcs
     this->err_cl = m_err_cl;
   }
   void set_histo_bins( int m_histo_bins ){ 
@@ -113,6 +113,8 @@ class CustomFit
   double std_dev( const std::vector<double> v );
   double std_dev( std::vector<double> v, double& err_lo, double& err_hi , double central_value=0);
   double std_dev( TF1* f[] , const unsigned fsize , const double val , double& err_lo, double& err_hi, const int cl=0);
+  void findClToys( TF1* f[] , const unsigned fsize ,  double xv, int& f_lo, int& f_hi );
+
   TF1* getFitErr(int &status);
   //  double std_dev( TF1* f[] , const unsigned fsize , const double val , const double binc );
   //  void saveErrFits( TF1* f[] , const unsigned fsize );

@@ -67,10 +67,46 @@ void CustomFit::fitHisto(){
     this->h_fit_lo->SetBinContent( i , val-ey_lo[i-1] );
     this->h_fit_hi->SetBinContent( i , val+ey_hi[i-1] );
   }
-
   this->g_fit = new TGraphAsymmErrors( nbins , x , y , 0 , 0 , ey_lo , ey_hi );
 
+  if ( this->err_cl == 2 ){
+    int f_lo; int f_hi;
+    this->findClToys( this->f_fit_err , NTOYS , h_fit->GetBinCenter(nbins) , f_lo, f_hi );
+
+    for (int i=1; i<=nbins; i++){
+      double xv=h_fit->GetBinCenter(i);
+      double val=f_fit->Eval( xv );
+      x[i-1]=xv;
+      y[i-1]=val;
+      this->h_fit->SetBinError( i , 0 );
+      this->h_fit_lo->SetBinContent( i , this->f_fit_err[f_lo]->Eval( xv ) );
+      this->h_fit_hi->SetBinContent( i , this->f_fit_err[f_hi]->Eval( xv ) );
+      //      if (nbins-i<10) std::cout << f_lo << " " << f_hi << " " << f_fit_err[f_lo]->Eval(xv) << " " << f_fit_err[f_hi]->Eval(xv)  << endl;
+    }
+  }
+
 }
+
+void CustomFit::findClToys( TF1* f[] , const unsigned fsize ,  double xv, int& f_lo, int& f_hi ){
+
+  std::vector<std::pair<double, int>> pf(fsize);
+
+  for (unsigned i=0; i<fsize; i++){
+    double y=f[i]->Eval(xv);
+    pf[i] = std::make_pair( y , i );
+  }
+
+  std::sort( pf.begin(), pf.end() );
+
+  int i_lo=(int)(0.16*pf.size());
+  int i_hi=(int)(0.84*pf.size());
+  f_lo=pf.at(i_lo).second;
+  f_hi=pf.at(i_hi).second;
+
+  cout << f_lo << " " << f_hi << " " << f[f_lo]->Eval(xv) << " " << f[f_hi]->Eval(xv)  << endl;
+}
+
+
 
 TF1* CustomFit::getFitErr(int &status){
   int fit_status=11;
